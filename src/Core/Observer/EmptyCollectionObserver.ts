@@ -1,0 +1,1 @@
+export type EmptyCollectionObserver = () => void;

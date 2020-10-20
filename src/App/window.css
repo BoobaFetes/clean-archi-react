@@ -1,0 +1,17 @@
+html {
+  height: 100%
+}
+
+html>body {
+  height: inherit;
+  margin: unset;
+}
+
+html>body>#root {
+  height: inherit
+}
+
+form {
+  height: 100%;
+  width: 100%;
+}
