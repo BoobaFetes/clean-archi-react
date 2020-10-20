@@ -13,6 +13,6 @@ export type ChangeObserver<T> = _ChangeObserver<T>;
 
 export type IAddSubscription<T> = _IAddSubscription<T>;
 export type IRemoveSubscription<T> = _IRemoveSubscription<T>;
-export type IClearSubscription<T> = _IClearSubscription<T>;
+export type IClearSubscription = _IClearSubscription;
 export type EmptyCollectionObserver = _EmptyCollectionObserver;
 export type ItemCollectionObserver<T> = _ItemCollectionObserver<T>;

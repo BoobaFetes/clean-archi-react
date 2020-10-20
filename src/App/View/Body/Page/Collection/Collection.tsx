@@ -7,8 +7,8 @@ import { Collection as ComponentCollection } from "App/View/Component";
 import { Link } from "react-router-dom";
 import { IPageEntity } from "Core/Entity/IPageEntity";
 import { ItemCollectionObserver } from "Core/Observer";
-import { ChangeObserver } from "App/ViewModel";
 import { Add, Edit } from "@material-ui/icons";
+import { ChangeObserver } from "Core/Observer";
 
 interface Props extends WithStyles<typeof styles> {
   items: IPageEntity[];
@@ -31,12 +31,12 @@ class CollectionClass extends PureComponent<Props, PageCollectionViewState> {
     prevProps: Readonly<Props>,
     prevState: Readonly<PageCollectionViewState>
   ) {
-    this.presenter.model.unSubscribeToChangeAll();
+    const observers = this.presenter.model.unSubscribeToChangeAll();
     for (const item of this.props.items) {
       if (this.presenter.model.collection.includes(item)) continue;
       this.presenter.model.collection.Add(item);
     }
-    this.presenter.model.subscribeToChangeAll();
+    this.presenter.model.subscribeToChangeAll(observers);
     this.presenter.model.notifyChange();
   }
 

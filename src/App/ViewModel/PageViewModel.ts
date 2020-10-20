@@ -1,5 +1,4 @@
 import { Property, PropertyTranslator } from "Core/Decorator";
-import { ViewState } from "App/ViewModel";
 import { ViewModel } from "App/ViewModel/base/ViewModel";
 import { IPageEntity } from "Core/Entity/IPageEntity";
 import { ISectionEntity } from "Core/Entity/ISectionEntity";
@@ -10,10 +9,13 @@ export enum EditionMode {
   Create = "Create",
   Edit = "Edit",
 }
-export type PageViewState = ViewState<PageViewModel>;
+export interface PageViewState extends IPageEntity {
+  mode: EditionMode;
+  error: Record<keyof IPageEntity, string | undefined>;
+}
 
 export class PageViewModel
-  extends ViewModel<PageViewModel>
+  extends ViewModel<PageViewState>
   implements IPageEntity {
   //#region IPageEntity
   public id: Guid;
@@ -35,7 +37,7 @@ export class PageViewModel
   public mode: EditionMode;
   public error: Record<keyof PageViewState, string | undefined>;
 
-  constructor(model?: Partial<PageViewModel>) {
+  constructor(model?: Partial<PageViewState>) {
     super();
     this.mode = model?.mode || EditionMode.None;
     this.error = {} as any;
@@ -48,18 +50,18 @@ export class PageViewModel
     this.sections = model?.sections || [];
     //#endregion
 
-    PropertyTranslator.exec<PageViewModel>(this);
+    PropertyTranslator.exec<PageViewState>(this);
   }
 
-  protected setChange(item: PageViewModel): PageViewState {
+  protected stateNotifiedOnChange(model: PageViewModel): PageViewState {
     return {
-      id: item.id,
-      name: item.name,
-      created: item.created,
-      edited: item.edited,
-      error: item.error,
-      mode: item.mode,
-      sections: item.sections,
+      id: model.id,
+      name: model.name,
+      created: model.created,
+      edited: model.edited,
+      error: model.error,
+      mode: model.mode,
+      sections: model.sections,
     };
   }
 

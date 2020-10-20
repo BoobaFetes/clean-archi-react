@@ -1,7 +1,8 @@
 import { IPresenter } from "App/Presenter/base/IPresenter";
-import { ChangeObserver, PageViewModel, ViewState } from "App/ViewModel";
+import { PageViewModel } from "App/ViewModel";
 import { EditionMode, PageViewState } from "App/ViewModel/PageViewModel";
 import { IOnSaveListener } from "Core/Listener";
+import { ChangeObserver } from "Core/Observer";
 import {
   CreatePageUseCase,
   EditPageUseCase,
@@ -10,7 +11,9 @@ import {
 } from "Core/UseCase";
 
 export class PagePresenter
-  implements IPresenter<PageViewModel>, IOnSaveListener<PageViewModel> {
+  implements
+    IPresenter<PageViewModel, PageViewState>,
+    IOnSaveListener<PageViewState> {
   private static strategy: Record<EditionMode, IPageUseCase> = {
     [EditionMode.None]: new ReadPageUseCase(),
     [EditionMode.Create]: new CreatePageUseCase(),

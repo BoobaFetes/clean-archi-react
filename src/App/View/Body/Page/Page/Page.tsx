@@ -1,12 +1,13 @@
 import { Field } from "App/View/Component";
 import React, { PureComponent } from "react";
-import { ChangeObserver, PageViewModel, PageViewState } from "App/ViewModel";
+import { PageViewModel, PageViewState } from "App/ViewModel";
 import { PagePresenter } from "App/Presenter";
 import { Grid, WithStyles, withStyles } from "@material-ui/core";
 import { styles } from "./styles";
 import { IPageEntity } from "Core/Entity/IPageEntity";
 import { EditionMode } from "App/ViewModel/PageViewModel";
 import { RouteComponentProps, withRouter } from "react-router-dom";
+import { ChangeObserver } from "Core/Observer";
 
 export type PageRouteProps = RouteComponentProps<{
   id?: string;
@@ -19,7 +20,7 @@ export interface PageProps extends Partial<PageViewState>, PageRouteProps {
 }
 
 type Props = PageProps & WithStyles<typeof styles>;
-class PageClass extends PureComponent<Props, PageViewModel> {
+class PageClass extends PureComponent<Props, PageViewState> {
   private presenter: PagePresenter;
   constructor(props: Props) {
     super(props);
@@ -36,11 +37,8 @@ class PageClass extends PureComponent<Props, PageViewModel> {
     this.presenter.onSaved = undefined;
   }
 
-  private updateView: ChangeObserver<PageViewState> = (state) => {
-    this.setState({
-      ...state,
-    });
-  };
+  private updateView: ChangeObserver<PageViewState> = (state) =>
+    this.setState({ ...state });
 
   private onSaved: ChangeObserver<PageViewState> = (state) => {
     const entity = {

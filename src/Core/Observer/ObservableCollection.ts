@@ -8,10 +8,7 @@ import {
 
 export class ObservableCollection<T>
   extends Array<T>
-  implements
-    IAddSubscription<T>,
-    IRemoveSubscription<T>,
-    IClearSubscription<T> {
+  implements IAddSubscription<T>, IRemoveSubscription<T>, IClearSubscription {
   public added: T[] = [];
   public removed: T[] = [];
 

@@ -1,35 +1,38 @@
-import { ChangeObserver, IViewModel, ViewState } from "./IViewModel";
+import { ChangeObserver } from "Core/Observer/IChangeSubscription";
+import { IViewModel } from "./IViewModel";
 
-export abstract class ViewModel<TModel> implements IViewModel<TModel> {
-  private observers = new Set<ChangeObserver<TModel>>();
+export abstract class ViewModel<TViewState> implements IViewModel<TViewState> {
+  private observers = new Set<ChangeObserver<TViewState>>();
 
-  public subscribeToChange(observer: ChangeObserver<TModel>): void {
+  public subscribeToChange(observer: ChangeObserver<TViewState>): void {
     this.observers.add(observer);
   }
 
   public unSubscribeToChange(
-    observer: ChangeObserver<TModel>
-  ): ChangeObserver<TModel> {
+    observer: ChangeObserver<TViewState>
+  ): ChangeObserver<TViewState> {
     if (this.observers.has(observer)) {
       this.observers.delete(observer);
     }
     return observer;
   }
 
-  public subscribeToChangeAll(observers: ChangeObserver<TModel>[]): void {
+  public subscribeToChangeAll(observers: ChangeObserver<TViewState>[]): void {
     observers.forEach((observer) => this.observers.add(observer));
   }
 
-  public unSubscribeToChangeAll(): ChangeObserver<TModel>[] {
+  public unSubscribeToChangeAll(): ChangeObserver<TViewState>[] {
     const returns = this.observers;
-    this.observers = new Set<ChangeObserver<TModel>>();
+    this.observers = new Set<ChangeObserver<TViewState>>();
     return Array.from(returns);
   }
 
   public notifyChange(): void {
     for (const observer of this.observers) {
-      observer(this.setChange(this));
+      observer(this.stateNotifiedOnChange(this));
     }
   }
-  protected abstract setChange(item: ViewModel<TModel>): ViewState<TModel>;
+  protected abstract stateNotifiedOnChange(
+    model: ViewModel<TViewState>
+  ): TViewState;
 }

@@ -1,17 +1,17 @@
 import { IPresenter } from "./base/IPresenter";
 import {
-  ChangeObserver,
   PageCollectionViewModel,
   PageCollectionViewState,
 } from "App/ViewModel";
 import { IPageEntity } from "Core/Entity";
 import { IRemoveSubscription } from "Core/Observer";
 import { ItemCollectionObserver } from "Core/Observer/ItemCollectionObserver";
+import { ChangeObserver } from "Core/Observer";
 
 export class PageCollectionPresenter
   implements
-    IPresenter<PageCollectionViewModel>,
-    IRemoveSubscription<PageCollectionViewModel> {
+    IPresenter<PageCollectionViewModel, PageCollectionViewState>,
+    IRemoveSubscription<PageCollectionViewState> {
   public model: PageCollectionViewModel;
 
   constructor(items: IPageEntity[]) {

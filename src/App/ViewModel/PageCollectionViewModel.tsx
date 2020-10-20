@@ -1,15 +1,13 @@
-import { ViewState } from "App/ViewModel";
 import { ViewModel } from "App/ViewModel/base/ViewModel";
 import { ObservableCollection } from "Core/Observer/ObservableCollection";
 import { IPageEntity } from "Core/Entity";
 
-export type PageCollectionViewState = Omit<
-  ViewState<PageCollectionViewModel>,
-  "subscribeToChangeOnCollectionEvent" | "unSubscribeToChangeOnCollectionEvent"
->;
+export interface PageCollectionViewState {
+  collection: ObservableCollection<IPageEntity>;
+}
 
 export class PageCollectionViewModel extends ViewModel<
-  PageCollectionViewModel
+  PageCollectionViewState
 > {
   public collection: ObservableCollection<IPageEntity>;
 
@@ -29,11 +27,11 @@ export class PageCollectionViewModel extends ViewModel<
     this.collection.unSubscribeToClear(this.notifyChange);
   }
 
-  protected setChange(
+  protected stateNotifiedOnChange(
     item: PageCollectionViewModel
-  ): ViewState<PageCollectionViewModel> {
+  ): PageCollectionViewState {
     return {
       collection: item.collection,
-    } as ViewState<PageCollectionViewModel>;
+    };
   }
 }
