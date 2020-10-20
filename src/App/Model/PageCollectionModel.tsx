@@ -1,14 +1,12 @@
-import { ViewModel } from "App/ViewModel/base/ViewModel";
+import { ModelBase } from "App/Model";
 import { ObservableCollection } from "Core/Observer/ObservableCollection";
 import { IPageEntity } from "Core/Entity";
 
-export interface PageCollectionViewState {
+export interface PageCollectionState {
   collection: ObservableCollection<IPageEntity>;
 }
 
-export class PageCollectionViewModel extends ViewModel<
-  PageCollectionViewState
-> {
+export class PageCollectionModel extends ModelBase<PageCollectionState> {
   public collection: ObservableCollection<IPageEntity>;
 
   constructor(items: IPageEntity[]) {
@@ -28,8 +26,8 @@ export class PageCollectionViewModel extends ViewModel<
   }
 
   protected stateNotifiedOnChange(
-    item: PageCollectionViewModel
-  ): PageCollectionViewState {
+    item: PageCollectionModel
+  ): PageCollectionState {
     return {
       collection: item.collection,
     };

@@ -1,30 +1,31 @@
 import { Field } from "App/View/Component";
 import React, { PureComponent } from "react";
-import { PageViewModel, PageViewState } from "App/ViewModel";
+import { PageState } from "App/Model";
 import { PagePresenter } from "App/Presenter";
 import { Grid, WithStyles, withStyles } from "@material-ui/core";
 import { styles } from "./styles";
 import { IPageEntity } from "Core/Entity/IPageEntity";
-import { EditionMode } from "App/ViewModel/PageViewModel";
+import { EditionMode } from "App/Model/PageModel";
 import { RouteComponentProps, withRouter } from "react-router-dom";
 import { ChangeObserver } from "Core/Observer";
+import { RouteAdapter } from "App/Infra/Adapters";
 
 export type PageRouteProps = RouteComponentProps<{
   id?: string;
   edit?: string;
   create?: string;
 }>;
-export interface PageProps extends Partial<PageViewState>, PageRouteProps {
+export interface PageProps extends Partial<PageState>, PageRouteProps {
   onUpsert?(item: IPageEntity): void;
   onAdd?(item: IPageEntity): void;
 }
 
 type Props = PageProps & WithStyles<typeof styles>;
-class PageClass extends PureComponent<Props, PageViewState> {
+class PageClass extends PureComponent<Props, PageState> {
   private presenter: PagePresenter;
   constructor(props: Props) {
     super(props);
-    this.presenter = new PagePresenter(props);
+    this.presenter = new PagePresenter(props, new RouteAdapter(props));
   }
 
   public componentDidMount() {
@@ -37,10 +38,10 @@ class PageClass extends PureComponent<Props, PageViewState> {
     this.presenter.onSaved = undefined;
   }
 
-  private updateView: ChangeObserver<PageViewState> = (state) =>
+  private updateView: ChangeObserver<PageState> = (state) =>
     this.setState({ ...state });
 
-  private onSaved: ChangeObserver<PageViewState> = (state) => {
+  private onSaved: ChangeObserver<PageState> = (state) => {
     const entity = {
       ...state,
     };
@@ -72,7 +73,6 @@ class PageClass extends PureComponent<Props, PageViewState> {
         onSubmit={(e) => {
           e.preventDefault();
           this.presenter.save();
-          this.goToMainPageOrGoBack();
         }}
       >
         <Grid item container direction="column" className={classes.root}>
@@ -111,7 +111,7 @@ class PageClass extends PureComponent<Props, PageViewState> {
               <input
                 type="button"
                 value="Cancel"
-                onClick={this.goToMainPageOrGoBack}
+                onClick={() => this.presenter.route.back()}
               />
             </Grid>
             <Grid item>
@@ -121,12 +121,6 @@ class PageClass extends PureComponent<Props, PageViewState> {
         </Grid>
       </form>
     );
-  }
-
-  private goToMainPageOrGoBack() {
-    const { history } = this.props;
-    if (history.length === 0) history.push("/");
-    else history.goBack();
   }
 }
 export const Page = withRouter(withStyles(styles)(PageClass));

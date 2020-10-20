@@ -1,8 +1,5 @@
 import { IPresenter } from "./base/IPresenter";
-import {
-  PageCollectionViewModel,
-  PageCollectionViewState,
-} from "App/ViewModel";
+import { PageCollectionModel, PageCollectionState } from "App/Model";
 import { IPageEntity } from "Core/Entity";
 import { IRemoveSubscription } from "Core/Observer";
 import { ItemCollectionObserver } from "Core/Observer/ItemCollectionObserver";
@@ -10,39 +7,39 @@ import { ChangeObserver } from "Core/Observer";
 
 export class PageCollectionPresenter
   implements
-    IPresenter<PageCollectionViewModel, PageCollectionViewState>,
-    IRemoveSubscription<PageCollectionViewState> {
-  public model: PageCollectionViewModel;
+    IPresenter<PageCollectionModel, PageCollectionState>,
+    IRemoveSubscription<PageCollectionState> {
+  public model: PageCollectionModel;
 
   constructor(items: IPageEntity[]) {
-    this.model = new PageCollectionViewModel(items);
+    this.model = new PageCollectionModel(items);
   }
 
   public subscribeToChange(
-    observer: ChangeObserver<PageCollectionViewState>
+    observer: ChangeObserver<PageCollectionState>
   ): void {
     this.model.subscribeToChange(observer);
   }
   public unSubscribeToChange(
-    observer: ChangeObserver<PageCollectionViewState>
+    observer: ChangeObserver<PageCollectionState>
   ): void {
     this.model.unSubscribeToChange(observer);
   }
   public subscribeToChangeAll(
-    observers: ChangeObserver<PageCollectionViewState>[]
+    observers: ChangeObserver<PageCollectionState>[]
   ): void {
     this.model.subscribeToChangeAll(observers);
   }
-  public unSubscribeToChangeAll(): ChangeObserver<PageCollectionViewState>[] {
+  public unSubscribeToChangeAll(): ChangeObserver<PageCollectionState>[] {
     return this.model.unSubscribeToChangeAll();
   }
   public subscribeToRemove(
-    observer: ItemCollectionObserver<PageCollectionViewModel> | undefined
+    observer: ItemCollectionObserver<PageCollectionModel> | undefined
   ): void {
     this.model.collection.subscribeToRemove(this.notifyModelChange);
   }
   public unSubscribeToRemove(
-    observer: ItemCollectionObserver<PageCollectionViewModel> | undefined
+    observer: ItemCollectionObserver<PageCollectionModel> | undefined
   ): void {
     this.model.collection.unSubscribeToRemove(this.notifyModelChange);
   }

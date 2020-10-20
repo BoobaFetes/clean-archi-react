@@ -1,5 +1,5 @@
 import { Property, PropertyTranslator } from "Core/Decorator";
-import { ViewModel } from "App/ViewModel/base/ViewModel";
+import { ModelBase } from "App/Model";
 import { IPageEntity } from "Core/Entity/IPageEntity";
 import { ISectionEntity } from "Core/Entity/ISectionEntity";
 import { Guid } from "Core/Entity/Guid";
@@ -9,18 +9,17 @@ export enum EditionMode {
   Create = "Create",
   Edit = "Edit",
 }
-export interface PageViewState extends IPageEntity {
+
+export interface PageState extends IPageEntity {
   mode: EditionMode;
   error: Record<keyof IPageEntity, string | undefined>;
 }
 
-export class PageViewModel
-  extends ViewModel<PageViewState>
-  implements IPageEntity {
+export class PageModel extends ModelBase<PageState> implements IPageEntity {
   //#region IPageEntity
   public id: Guid;
 
-  @Property<PageViewModel>({
+  @Property<PageModel>({
     observers: [
       (item) => item?.validate("name"),
       (item) => item?.notifyChange(),
@@ -35,9 +34,9 @@ export class PageViewModel
   //#endregion
 
   public mode: EditionMode;
-  public error: Record<keyof PageViewState, string | undefined>;
+  public error: Record<keyof PageState, string | undefined>;
 
-  constructor(model?: Partial<PageViewState>) {
+  constructor(model?: Partial<PageState>) {
     super();
     this.mode = model?.mode || EditionMode.None;
     this.error = {} as any;
@@ -50,10 +49,10 @@ export class PageViewModel
     this.sections = model?.sections || [];
     //#endregion
 
-    PropertyTranslator.exec<PageViewState>(this);
+    PropertyTranslator.exec<PageState>(this);
   }
 
-  protected stateNotifiedOnChange(model: PageViewModel): PageViewState {
+  protected stateNotifiedOnChange(model: PageModel): PageState {
     return {
       id: model.id,
       name: model.name,
@@ -65,7 +64,7 @@ export class PageViewModel
     };
   }
 
-  private validate(property: keyof PageViewState) {
+  private validate(property: keyof PageState) {
     const value = this[property];
 
     switch (property) {

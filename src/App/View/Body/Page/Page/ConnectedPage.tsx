@@ -2,10 +2,9 @@ import { PageAction } from "App/Store";
 import { Page, PageProps, PageRouteProps } from "App/View/Body/Page/Page/Page";
 import { IPageEntity } from "Core/Entity/IPageEntity";
 import { connect } from "react-redux";
-import { withRouter } from "react-router-dom";
 import { Dispatch } from "redux";
-import { parse as qsParse, ParsedQuery } from "query-string";
-import { EditionMode } from "App/ViewModel/PageViewModel";
+import { parse as qsParse } from "query-string";
+import { EditionMode } from "App/Model/PageModel";
 import { ComponentType } from "react";
 
 type QueryStringParams = {

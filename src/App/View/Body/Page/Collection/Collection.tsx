@@ -1,7 +1,7 @@
 import { Grid, IconButton, withStyles, WithStyles } from "@material-ui/core";
 import React, { PureComponent } from "react";
 import { styles } from "./styles";
-import { PageCollectionViewState } from "App/ViewModel";
+import { PageCollectionState } from "App/Model";
 import { PageCollectionPresenter } from "App/Presenter";
 import { Collection as ComponentCollection } from "App/View/Component";
 import { Link } from "react-router-dom";
@@ -15,7 +15,7 @@ interface Props extends WithStyles<typeof styles> {
   onRemove?: ItemCollectionObserver<IPageEntity>;
 }
 
-class CollectionClass extends PureComponent<Props, PageCollectionViewState> {
+class CollectionClass extends PureComponent<Props, PageCollectionState> {
   private presenter: PageCollectionPresenter;
   constructor(props: Props) {
     super(props);
@@ -29,7 +29,7 @@ class CollectionClass extends PureComponent<Props, PageCollectionViewState> {
 
   public componentDidUpdate(
     prevProps: Readonly<Props>,
-    prevState: Readonly<PageCollectionViewState>
+    prevState: Readonly<PageCollectionState>
   ) {
     const observers = this.presenter.model.unSubscribeToChangeAll();
     for (const item of this.props.items) {
@@ -45,7 +45,7 @@ class CollectionClass extends PureComponent<Props, PageCollectionViewState> {
     this.presenter.model.collection.unSubscribeToRemove(this.props.onRemove);
   }
 
-  private updateView: ChangeObserver<PageCollectionViewState> = (state) => {
+  private updateView: ChangeObserver<PageCollectionState> = (state) => {
     this.setState({ collection: state.collection || [] });
   };
 

@@ -1,4 +1,4 @@
-import { IViewModel } from "App/ViewModel";
+import { IModel } from "App/Model";
 
 export interface IOnSaveListener<T> {
   onSaved?(item: T): void;

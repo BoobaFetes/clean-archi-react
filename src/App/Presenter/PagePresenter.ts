@@ -1,6 +1,6 @@
 import { IPresenter } from "App/Presenter/base/IPresenter";
-import { PageViewModel } from "App/ViewModel";
-import { EditionMode, PageViewState } from "App/ViewModel/PageViewModel";
+import { PageModel } from "App/Model";
+import { EditionMode, PageState } from "App/Model/PageModel";
 import { IOnSaveListener } from "Core/Listener";
 import { ChangeObserver } from "Core/Observer";
 import {
@@ -9,11 +9,10 @@ import {
   IPageUseCase,
   ReadPageUseCase,
 } from "Core/UseCase";
+import { IRouteAdapter } from "Core/Adapter";
 
 export class PagePresenter
-  implements
-    IPresenter<PageViewModel, PageViewState>,
-    IOnSaveListener<PageViewState> {
+  implements IPresenter<PageModel, PageState>, IOnSaveListener<PageState> {
   private static strategy: Record<EditionMode, IPageUseCase> = {
     [EditionMode.None]: new ReadPageUseCase(),
     [EditionMode.Create]: new CreatePageUseCase(),
@@ -23,10 +22,12 @@ export class PagePresenter
     return PagePresenter.strategy[EditionMode[this.model.mode]];
   }
 
-  public model: PageViewModel;
+  public model: PageModel;
+  public route: IRouteAdapter;
 
-  constructor(model: Partial<PageViewState>) {
-    this.model = new PageViewModel(model);
+  constructor(model: Partial<PageState>, route: IRouteAdapter) {
+    this.model = new PageModel(model);
+    this.route = route;
 
     const entity = this.strategy.getEntity(this.model);
     this.model.id = entity.id;
@@ -35,22 +36,20 @@ export class PagePresenter
     this.model.edited = entity.edited;
     this.model.sections = entity.sections;
   }
-  public subscribeToChange(observer: ChangeObserver<PageViewState>): void {
+  public subscribeToChange(observer: ChangeObserver<PageState>): void {
     this.model.subscribeToChange(observer);
   }
-  public unSubscribeToChange(observer: ChangeObserver<PageViewState>): void {
+  public unSubscribeToChange(observer: ChangeObserver<PageState>): void {
     this.model.unSubscribeToChange(observer);
   }
 
-  public subscribeToChangeAll(
-    observers: ChangeObserver<PageViewState>[]
-  ): void {
+  public subscribeToChangeAll(observers: ChangeObserver<PageState>[]): void {
     this.model.subscribeToChangeAll(observers);
   }
-  public unSubscribeToChangeAll(): ChangeObserver<PageViewState>[] {
+  public unSubscribeToChangeAll(): ChangeObserver<PageState>[] {
     return this.model.unSubscribeToChangeAll();
   }
-  public onSaved?(item: PageViewModel): void;
+  public onSaved?(item: PageModel): void;
 
   public save() {
     if (!this.onSaved || Object.keys(this.model.error).length > 0) {
@@ -58,14 +57,15 @@ export class PagePresenter
     }
 
     this.onSaved(this.model);
-    if (this.strategy instanceof CreatePageUseCase) {
-      this.model.error = {} as any;
+    // if (this.strategy instanceof CreatePageUseCase) {
+    //   this.model.error = {} as any;
 
-      const entity = this.strategy.getEntity(this.model);
-      this.model.id = entity.id;
-      this.model.name = entity.name;
-      this.model.created = entity.created;
-      this.model.edited = entity.edited;
-    }
+    //   const entity = this.strategy.getEntity(this.model);
+    //   this.model.id = entity.id;
+    //   this.model.name = entity.name;
+    //   this.model.created = entity.created;
+    //   this.model.edited = entity.edited;
+    // }
+    this.route.navigate("/");
   }
 }
