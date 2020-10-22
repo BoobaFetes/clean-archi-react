@@ -1,5 +1,5 @@
 import { Field } from "App/View/Component";
-import React, { PureComponent } from "react";
+import React, { PureComponent, createRef } from "react";
 import { PageState } from "App/Model";
 import { PagePresenter } from "App/Presenter";
 import { Grid, WithStyles, withStyles } from "@material-ui/core";
@@ -23,6 +23,7 @@ export interface PageProps extends Partial<PageState>, PageRouteProps {
 type Props = PageProps & WithStyles<typeof styles>;
 class PageClass extends PureComponent<Props, PageState> {
   private presenter: PagePresenter;
+  private nameField = createRef<HTMLDivElement>();
   constructor(props: Props) {
     super(props);
     this.presenter = new PagePresenter(props, new RouteAdapter(props));
@@ -31,6 +32,7 @@ class PageClass extends PureComponent<Props, PageState> {
   public componentDidMount() {
     this.presenter.subscribeToChange(this.updateView);
     this.presenter.onSaved = this.onSaved;
+    this.nameField.current?.focus();
   }
 
   public componentWillUnmount() {

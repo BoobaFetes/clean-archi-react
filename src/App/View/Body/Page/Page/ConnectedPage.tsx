@@ -16,14 +16,14 @@ const mapStateToProps = (state: IPageEntity[], ownProps: PageProps) => {
   const queryString: QueryStringParams = qsParse(ownProps.location.search, {
     parseBooleans: true,
   });
-
+  const mode =
+    queryString.create === null
+      ? EditionMode.Create
+      : queryString.edit === null
+      ? EditionMode.Edit
+      : undefined;
   return {
-    mode:
-      queryString.create === null
-        ? EditionMode.Create
-        : queryString.edit === null
-        ? EditionMode.Edit
-        : undefined,
+    mode,
     ...(state.find((item) => item.id === ownProps.match.params.id) || {}),
   };
 };
