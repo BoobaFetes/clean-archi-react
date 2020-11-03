@@ -1,16 +1,28 @@
-import { Guid as _Guid } from "./Guid";
-import { IEntity as _IEntity } from "./IEntity";
-import { IPageEntity as _IPageEntity } from "./IPageEntity";
-import { ISectionEntity as _ISectionEntity } from "./ISectionEntity";
-import { IWidgetEntity as _IWidgetEntity } from "./IWidgetEntity";
-
 export { NewGuid } from "./Guid";
-export type Guid = _Guid;
 
-export type IEntity = _IEntity;
+export declare namespace nsEntity {
+  export type Guid = string;
+  export type DateIso = string;
+  export interface IEntity {
+    id?: Guid;
+  }
+  export interface IPageEntity extends IEntity {
+    name: string;
+    edited: DateIso;
+    created: DateIso;
+    sections: Guid[];
+  }
+  export interface ISectionEntity extends IEntity {
+    name: string;
+    widgets: Guid[];
+  }
+  type Point = {
+    x: number;
+    y: number;
+  };
 
-export type IPageEntity = _IPageEntity;
-
-export type ISectionEntity = _ISectionEntity;
-
-export type IWidgetEntity = _IWidgetEntity;
+  export interface IWidgetEntity extends IEntity {
+    name: string;
+    plots: Point[];
+  }
+}

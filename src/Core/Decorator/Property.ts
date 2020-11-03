@@ -1,3 +1,4 @@
+import { nsObserver } from "Core/Observer";
 import "reflect-metadata";
 
 const formatMetadataKey = Symbol("Property");
@@ -5,19 +6,10 @@ const formatMetadataKey = Symbol("Property");
 type PropertyObserver<T extends object> = (item?: T) => void;
 
 interface IPropertyOptions<T extends object> {
-  observers?: PropertyObserver<T>[];
+  onInit?: PropertyObserver<T>;
+  onChange?: PropertyObserver<T>;
+  notifyChange?: boolean;
   descriptor?: PropertyDescriptor;
-}
-
-export function Property<T extends object>(options?: IPropertyOptions<T>) {
-  return Reflect.metadata(formatMetadataKey, options);
-}
-
-function getProperty<T extends object>(
-  target: any,
-  propertyKey: string
-): IPropertyOptions<T> | undefined {
-  return Reflect.getMetadata(formatMetadataKey, target, propertyKey);
 }
 
 class Translator {
@@ -28,8 +20,8 @@ class Translator {
       const property = getProperty(that, key);
       if (property) {
         try {
-          mem[key] = !property.observers
-            ? this.getDataAccessor(that, value, property?.descriptor)
+          mem[key] = !!property.descriptor
+            ? this.getDataAccessor(value, property.descriptor)
             : this.getAccessorDescriptor(that, value, property);
         } catch (ex) {
           console.error(
@@ -48,8 +40,7 @@ class Translator {
   }
 
   /** For more details refers to https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty */
-  private getDataAccessor<T extends object>(
-    that: T,
+  private getDataAccessor(
     value: any,
     descriptor: PropertyDescriptor = {}
   ): PropertyDescriptor {
@@ -66,7 +57,12 @@ class Translator {
     value: any,
     property: IPropertyOptions<T>
   ) {
-    const { observers = [] } = property;
+    const { onInit, onChange, notifyChange = false } = property;
+
+    if (onInit) {
+      onInit(that);
+      Translator.notify(that, property);
+    }
 
     // action to create a property in place of the field
     let current = value;
@@ -81,14 +77,55 @@ class Translator {
 
         current = value;
 
-        for (const observer of observers) {
-          observer(that);
+        const obj = this as any;
+        if (onInit) {
+          onInit(obj);
+        }
+        if (onChange) {
+          onChange(obj);
+        }
+        Translator.notify(obj, property);
+
+        const notificator = obj as nsObserver.IChangeSubscription;
+        if (notifyChange && notificator.notifyChange) {
+          notificator.notifyChange();
         }
       },
       enumerable: true,
       configurable: false, // decorated fields are sealed !
     };
   }
+  private static notify<T extends object>(
+    obj: object,
+    property: IPropertyOptions<T>
+  ) {
+    const notificator = obj as nsObserver.IChangeSubscription;
+    if (property.notifyChange && notificator.notifyChange) {
+      notificator.notifyChange();
+    }
+  }
 }
 
-export const PropertyTranslator = new Translator();
+const PropertyTranslator = new Translator();
+
+export function UseProperty<T extends { new (...args: any[]): {} }>(
+  constructor: T
+) {
+  return class extends constructor {
+    constructor(...args: any[]) {
+      super(...args);
+      PropertyTranslator.exec(this);
+    }
+  };
+}
+
+export function Property<T extends object>(options?: IPropertyOptions<T>) {
+  return Reflect.metadata(formatMetadataKey, options);
+}
+
+function getProperty<T extends object>(
+  target: any,
+  propertyKey: string
+): IPropertyOptions<T> | undefined {
+  return Reflect.getMetadata(formatMetadataKey, target, propertyKey);
+}

@@ -1,48 +1,67 @@
-import {
-  EmptyCollectionObserver,
-  IAddSubscription,
-  IClearSubscription,
-  IRemoveSubscription,
-  ItemCollectionObserver,
-} from "Core/Observer";
+import { nsObserver } from "Core/Observer";
+import { Unsubscribe } from "redux-saga";
 
 export class ObservableCollection<T>
-  extends Array<T>
-  implements IAddSubscription<T>, IRemoveSubscription<T>, IClearSubscription {
+  implements
+    nsObserver.ISetSubscription,
+    nsObserver.IAddSubscription,
+    nsObserver.IRemoveSubscription {
   public added: T[] = [];
   public removed: T[] = [];
+  public get list() {
+    return [...this._items];
+  }
+  private _items: T[] = [];
 
-  private observersAdd = new Set<ItemCollectionObserver<T>>();
-  private observersRemove = new Set<ItemCollectionObserver<T>>();
-  private observersClear = new Set<EmptyCollectionObserver>();
+  private observersSet = new Set<nsObserver.Observer>();
+  private observersAdd = new Set<nsObserver.Observer>();
+  private observersRemove = new Set<nsObserver.Observer>();
 
+  constructor(items?: T[]) {
+    this._items = items || [];
+  }
+
+  public Set(newItems: T[], shouldMakeDiff: boolean = false) {
+    const oldItems = this._items;
+    this._items = newItems;
+    this.added = [];
+    this.removed = [];
+
+    if (shouldMakeDiff) {
+      this.added = this._items.filter((i) => !oldItems.includes(i));
+      this.removed = oldItems.filter((i) => !this._items.includes(i));
+    }
+
+    this.notify(this.observersSet, this._items);
+  }
   public update(items: T[]) {
-    const toRemove = this.filter((i) => !items.includes(i));
+    const toRemove = this._items.filter((i) => !items.includes(i));
     toRemove.forEach((item) => this.Remove(item));
 
-    const toAdd = items.filter((i) => !this.includes(i));
+    const toAdd = items.filter((i) => !this._items.includes(i));
     toAdd.forEach((item) => this.Add(item));
   }
 
   public Add(item: T) {
-    this.add(item);
-    this.notifyAdd(item);
-  }
-  private add(item: T) {
-    this.push(item);
+    this._items.push(item);
     this.added.push(item);
     this.delete(this.removed, item);
+
+    this.notify(this.observersAdd, item);
   }
 
   public Remove(item: T) {
-    this.remove(item);
-    this.notifyRemove(item);
-  }
-  private remove(item: T) {
-    this.delete(this, item);
+    this.delete(this._items, item);
     this.delete(this.added, item);
     this.removed.push(item);
+
+    this.notify(this.observersRemove, item);
   }
+
+  public Clear() {
+    this.Set([]);
+  }
+
   private delete(array: T[], item: T) {
     const index = array.indexOf(item);
     if (index >= 0) {
@@ -50,59 +69,28 @@ export class ObservableCollection<T>
     }
   }
 
-  public Clear() {
-    this.splice(0, this.length);
-    this.added.splice(0, this.added.length);
-    this.removed.splice(0, this.removed.length);
-    this.notifyClear();
-  }
-
   //#region Subscriptions
-  subscribeToAdd(observer: ItemCollectionObserver<T>): void {
-    if (!observer) return;
+  public subscribeToAdd(observer: nsObserver.Observer): Unsubscribe {
+    if (!observer) return () => {};
     this.observersAdd.add(observer);
+    return () => this.observersAdd.delete(observer);
   }
-  unSubscribeToAdd(observer: ItemCollectionObserver<T>): void {
-    if (this.observersAdd.has(observer)) {
-      this.observersAdd.delete(observer);
-    }
-  }
-  subscribeToRemove(observer: ItemCollectionObserver<T> | undefined): void {
-    if (!observer) return;
+  public subscribeToRemove(observer: nsObserver.Observer): Unsubscribe {
+    if (!observer) return () => {};
     this.observersRemove.add(observer);
+    return () => this.observersRemove.delete(observer);
   }
-  unSubscribeToRemove(observer: ItemCollectionObserver<T> | undefined): void {
-    if (!observer) return;
-    if (this.observersRemove.has(observer)) {
-      this.observersRemove.delete(observer);
-    }
-  }
-  subscribeToClear(observer: EmptyCollectionObserver): void {
-    if (!observer) return;
-    this.observersClear.add(observer);
-  }
-  unSubscribeToClear(observer: EmptyCollectionObserver): void {
-    if (!observer) return;
-    if (this.observersClear.has(observer)) {
-      this.observersClear.delete(observer);
-    }
+  public subscribeToSet(observer: nsObserver.Observer): Unsubscribe {
+    if (!observer) return () => {};
+    this.observersSet.add(observer);
+    return () => this.observersSet.delete(observer);
   }
   //#endregion Subscriptions
 
   //#region Notifications
-  private notifyAdd(item: T) {
-    for (const observer of this.observersAdd) {
-      observer(item);
-    }
-  }
-  private notifyRemove(item: T) {
-    for (const observer of this.observersRemove) {
-      observer(item);
-    }
-  }
-  private notifyClear() {
-    for (const observer of this.observersClear) {
-      observer();
+  private notify(observers: Set<nsObserver.Observer>, obj?: T | T[]) {
+    for (const observer of observers) {
+      observer(obj);
     }
   }
   //#endregion Notifications

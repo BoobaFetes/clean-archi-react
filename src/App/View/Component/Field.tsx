@@ -5,7 +5,7 @@ interface FieldProps {
   edit?: boolean;
   fullWidth?: boolean;
   label: string;
-  value: string | null;
+  value: string | undefined;
   onChange?: ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>;
   error?: string | null;
 }

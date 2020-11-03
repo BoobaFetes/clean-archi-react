@@ -1,1 +1,1 @@
-export { Property, PropertyTranslator } from "./Property";
+export { Property, UseProperty } from "./Property";

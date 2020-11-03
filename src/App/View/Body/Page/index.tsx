@@ -1,2 +1,6 @@
-export { Page } from "./Page";
-export { PageCollection, ConnectedPageCollection } from "./Collection";
+import { nsPageWrapper } from "./Page/Wrapper";
+
+export { Page, PageWrappper } from "./Page";
+export { PageCollection } from "./Collection";
+
+export type PageWrapperProps = nsPageWrapper.Props;

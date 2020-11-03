@@ -1,8 +1,8 @@
-import { IRouteAdapter } from "Core/Adapter";
+import { nsAdapter } from "Core/Adapter";
 import { RouteComponentProps } from "react-router-dom";
 import * as H from "history";
 
-export class RouteAdapter implements IRouteAdapter {
+export class RouteAdapter implements nsAdapter.IRouteAdapter {
   private history: H.History<H.LocationState>;
 
   constructor(route: RouteComponentProps<any>) {

@@ -1,4 +1,5 @@
-export type Guid = string;
+import { nsEntity } from "Core/Entity";
+
 export const NewGuid = () => {
   const part1 = generate(8);
   const part2 = generate(4);
@@ -8,7 +9,7 @@ export const NewGuid = () => {
   const part4 = generate(3);
   const part5 = generate(12);
 
-  return `${part1}-${part2}-${m}${part3}-${n}${part4}-${part5}` as Guid;
+  return `${part1}-${part2}-${m}${part3}-${n}${part4}-${part5}` as nsEntity.Guid;
 };
 
 function generate(count: number) {

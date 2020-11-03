@@ -1,84 +1,65 @@
 import { Field } from "App/View/Component";
-import React, { PureComponent, createRef } from "react";
-import { PageState } from "App/Model";
-import { PagePresenter } from "App/Presenter";
-import { Grid, WithStyles, withStyles } from "@material-ui/core";
+import React, { ComponentType, PureComponent } from "react";
+import {
+  Grid,
+  LinearProgress,
+  WithStyles,
+  withStyles,
+} from "@material-ui/core";
+import { Presenter } from "./Presenter";
+import { nsEntity } from "Core/Entity";
+import { EditionMode } from "Core/UseCase";
+import { DataVizPageStore } from "App/Infra";
 import { styles } from "./styles";
-import { IPageEntity } from "Core/Entity/IPageEntity";
-import { EditionMode } from "App/Model/PageModel";
-import { RouteComponentProps, withRouter } from "react-router-dom";
-import { ChangeObserver } from "Core/Observer";
 import { RouteAdapter } from "App/Infra/Adapters";
+import { PageState } from "./PageModel";
 
-export type PageRouteProps = RouteComponentProps<{
-  id?: string;
-  edit?: string;
-  create?: string;
-}>;
-export interface PageProps extends Partial<PageState>, PageRouteProps {
-  onUpsert?(item: IPageEntity): void;
-  onAdd?(item: IPageEntity): void;
-}
+// simulate the dependancy injection
+const pageStore = new DataVizPageStore();
+
+export type PageProps = nsEntity.IPageEntity & {
+  mode: EditionMode;
+  route: RouteAdapter;
+};
 
 type Props = PageProps & WithStyles<typeof styles>;
 class PageClass extends PureComponent<Props, PageState> {
-  private presenter: PagePresenter;
-  private nameField = createRef<HTMLDivElement>();
+  private presenter: Presenter;
+
   constructor(props: Props) {
     super(props);
-    this.presenter = new PagePresenter(props, new RouteAdapter(props));
+    this.presenter = new Presenter(pageStore, props.route);
   }
 
   public componentDidMount() {
-    this.presenter.subscribeToChange(this.updateView);
-    this.presenter.onSaved = this.onSaved;
-    this.nameField.current?.focus();
-  }
-
-  public componentWillUnmount() {
-    this.presenter.unSubscribeToChangeAll();
-    this.presenter.onSaved = undefined;
-  }
-
-  private updateView: ChangeObserver<PageState> = (state) =>
-    this.setState({ ...state });
-
-  private onSaved: ChangeObserver<PageState> = (state) => {
-    const entity = {
-      ...state,
+    this.presenter.viewUpdater = (state) => {
+      this.setState({ ...state });
     };
-    switch (this.presenter.model.mode) {
-      case EditionMode.Create:
-        this.onAdd(entity);
-        break;
-      case EditionMode.Edit:
-        this.onUpsert(entity);
-        break;
-
-      default:
-        break;
-    }
-  };
-  private onAdd(entity: IPageEntity) {
-    if (!this.props.onAdd) return;
-    this.props.onAdd(entity);
+    this.presenter.setModel(this.props);
   }
-  private onUpsert(entity: IPageEntity) {
-    if (!this.props.onUpsert) return;
-    this.props.onUpsert(entity);
+  public componentDidUpdate(prevProps: Readonly<Props>) {
+    if (this.props.id !== prevProps.id || this.props.mode !== prevProps.mode) {
+      this.presenter.setModel(this.props);
+    }
+  }
+  public componentWillUnmount() {
+    this.presenter.destroy();
   }
 
   public render() {
     const { classes } = this.props;
     return (
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          this.presenter.save();
+          if (await this.presenter.save()) {
+            this.presenter.route.navigate("/");
+          }
         }}
       >
         <Grid item container direction="column" className={classes.root}>
           <Grid item container>
+            {this.presenter.model.loading && <LinearProgress />}
             <Field
               fullWidth
               label="edition mode"
@@ -88,7 +69,7 @@ class PageClass extends PureComponent<Props, PageState> {
             <Field
               fullWidth
               label="date de création"
-              value={this.presenter.model.created?.toISOString() || ""}
+              value={this.presenter.model.created || ""}
             />
           </Grid>
           <Grid item container>
@@ -98,7 +79,7 @@ class PageClass extends PureComponent<Props, PageState> {
               edit={!!this.presenter.model.mode}
               value={this.presenter.model.name}
               onChange={(e) => (this.presenter.model.name = e.target.value)}
-              error={this.presenter.model.error.name}
+              error={this.presenter.model.errors.name}
             />
           </Grid>
           <Grid
@@ -113,7 +94,7 @@ class PageClass extends PureComponent<Props, PageState> {
               <input
                 type="button"
                 value="Cancel"
-                onClick={() => this.presenter.route.back()}
+                onClick={this.presenter.route.back}
               />
             </Grid>
             <Grid item>
@@ -125,4 +106,5 @@ class PageClass extends PureComponent<Props, PageState> {
     );
   }
 }
-export const Page = withRouter(withStyles(styles)(PageClass));
+
+export const Page = withStyles(styles)(PageClass) as ComponentType<PageProps>;

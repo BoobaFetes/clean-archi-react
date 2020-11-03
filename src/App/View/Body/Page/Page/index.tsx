@@ -1,3 +1,2 @@
-import { Page } from "./Page";
-
-export { Page };
+export { Page } from "./Page";
+export { PageWrappper } from "./Wrapper";
