@@ -6,7 +6,7 @@ import {
   WithStyles,
   withStyles,
 } from "@material-ui/core";
-import { Presenter } from "./Presenter";
+import { PagePresenter } from "./PagePresenter";
 import { nsEntity } from "Core/Entity";
 import { EditionMode } from "Core/UseCase";
 import { DataVizPageStore } from "App/Infra";
@@ -24,11 +24,11 @@ export type PageProps = nsEntity.IPageEntity & {
 
 type Props = PageProps & WithStyles<typeof styles>;
 class PageClass extends PureComponent<Props, PageState> {
-  private presenter: Presenter;
+  private presenter: PagePresenter;
 
   constructor(props: Props) {
     super(props);
-    this.presenter = new Presenter(pageStore, props.route);
+    this.presenter = new PagePresenter(pageStore, props.route);
   }
 
   public componentDidMount() {

@@ -11,7 +11,7 @@ import { Collection as ComponentCollection } from "App/View/Component";
 import { Link } from "react-router-dom";
 import { Add, Edit, Delete } from "@material-ui/icons";
 import { PageCollectionState } from "./PageCollectionModel";
-import { Presenter } from "./Presenter";
+import { PageCollectionPresenter } from "./PageCollectionPresenter";
 import { DataVizPageStore } from "App/Infra";
 
 // simulate the dependancy injection
@@ -20,11 +20,11 @@ const pageStore = new DataVizPageStore();
 type Props = WithStyles<typeof styles>;
 
 class CollectionClass extends PureComponent<Props, PageCollectionState> {
-  private presenter: Presenter;
+  private presenter: PageCollectionPresenter;
 
   constructor(props: Props) {
     super(props);
-    this.presenter = new Presenter(pageStore);
+    this.presenter = new PageCollectionPresenter(pageStore);
   }
 
   public componentDidMount() {

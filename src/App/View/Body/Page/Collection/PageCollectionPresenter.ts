@@ -10,9 +10,9 @@ import {
 } from "./PageCollectionModel";
 
 @UseProperty
-export class Presenter
+export class PageCollectionPresenter
   implements IPresenter<PageCollectionModel, PageCollectionState> {
-  @Property<Presenter>({
+  @Property<PageCollectionPresenter>({
     onInit(that) {
       if (that?.viewUpdater) {
         that?.unsubscriptions.push(
@@ -25,7 +25,7 @@ export class Presenter
   public model: PageCollectionModel;
   public viewUpdater: nsObserver.Observer | undefined;
 
-  @Property<Presenter>({
+  @Property<PageCollectionPresenter>({
     onInit(that) {
       that?.unsubscriptions.push(
         that?.pageStore.subscribe((pages) => {

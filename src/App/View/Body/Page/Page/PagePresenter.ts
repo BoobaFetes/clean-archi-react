@@ -13,8 +13,8 @@ import { nsObserver } from "Core/Observer";
 import { PageModel, PageState } from "./PageModel";
 
 @UseProperty
-export class Presenter implements IPresenter<PageModel, PageState> {
-  @Property<Presenter>({
+export class PagePresenter implements IPresenter<PageModel, PageState> {
+  @Property<PagePresenter>({
     onInit(that) {
       if (that?.viewUpdater) {
         that?.unsubscriptions.push(
@@ -30,7 +30,7 @@ export class Presenter implements IPresenter<PageModel, PageState> {
   public route: nsAdapter.IRouteAdapter;
 
   private strategy: Record<EditionMode, nsUseCase.PageHandler>;
-  @Property<Presenter>({
+  @Property<PagePresenter>({
     onInit(that) {
       that?.unsubscriptions.push(
         that?.pageStore.subscribe((pages) => {
