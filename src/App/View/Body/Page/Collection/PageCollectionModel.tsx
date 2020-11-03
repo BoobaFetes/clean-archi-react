@@ -1,24 +1,20 @@
 import { ModelBase } from "App/Model/ModelBase";
 import { ObservableCollection } from "Core/Observer/ObservableCollection";
 import { nsEntity } from "Core/Entity";
-import { Property, UseProperty } from "Core/Decorator";
+import { Bind, UseBinding } from "Core/Decorator";
 
 export type PageCollectionState = {
-  loading: boolean;
+  isLoading: boolean;
   items: nsEntity.IPageEntity[];
 };
 
-@UseProperty
+@UseBinding
 export class PageCollectionModel extends ModelBase<PageCollectionState> {
-  @Property<PageCollectionModel>({ notifyChange: true })
-  public loading: boolean = false;
+  @Bind<PageCollectionModel>({ notifyChange: true })
+  public isLoading: boolean = false;
 
-  @Property<PageCollectionModel>({
-    onInit(that) {
-      that?.collection.subscribeToSet(that?.notifyChange);
-      that?.collection.subscribeToAdd(that?.notifyChange);
-      that?.collection.subscribeToRemove(that?.notifyChange);
-    },
+  @Bind<PageCollectionModel>({
+    onSet: (that) => that.collection.subscribeToChange(that?.notifyChange),
     notifyChange: true,
   })
   public collection: ObservableCollection<nsEntity.IPageEntity>;
@@ -28,9 +24,9 @@ export class PageCollectionModel extends ModelBase<PageCollectionState> {
     this.collection = new ObservableCollection(items);
   }
 
-  protected notifyArgument(): PageCollectionState {
+  public getState(): PageCollectionState {
     return {
-      loading: this.loading,
+      isLoading: this.isLoading,
       items: this.collection.list,
     };
   }

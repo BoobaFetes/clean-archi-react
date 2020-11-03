@@ -2,10 +2,11 @@ import { nsObserver } from "Core/Observer";
 
 export abstract class ModelBase<TState>
   implements nsObserver.IChangeSubscription {
-  private observers = new Set<nsObserver.Observer>();
+  protected abstract getState(): TState;
+  private observers = new Set<nsObserver.StateObserver<TState>>();
 
   public subscribeToChange(
-    observer: nsObserver.Observer
+    observer: nsObserver.StateObserver<TState>
   ): nsObserver.UnSubscribe {
     this.observers.add(observer);
     return () => this.observers.delete(observer);
@@ -13,9 +14,7 @@ export abstract class ModelBase<TState>
 
   public notifyChange(): void {
     for (const observer of this.observers) {
-      observer(this.notifyArgument());
+      observer(this.getState());
     }
   }
-
-  protected abstract notifyArgument(): TState;
 }

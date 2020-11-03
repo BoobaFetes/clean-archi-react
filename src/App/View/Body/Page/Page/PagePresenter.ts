@@ -1,4 +1,4 @@
-import { IPresenter } from "App/Presenter";
+import { IPresenter, PresenterBase } from "App/Presenter";
 import {
   CreatePageUseCase,
   EditionMode,
@@ -6,48 +6,38 @@ import {
   nsUseCase,
   ReadPageUseCase,
 } from "Core/UseCase";
-import { CommandStatus, nsAdapter } from "Core/Adapter";
+import { nsAdapter } from "Core/Adapter";
 import { nsEntity } from "Core/Entity";
-import { Property, UseProperty } from "Core/Decorator";
-import { nsObserver } from "Core/Observer";
+import { Bind, UseBinding } from "Core/Decorator";
 import { PageModel, PageState } from "./PageModel";
+import { nsObserver } from "Core/Observer";
 
-@UseProperty
-export class PagePresenter implements IPresenter<PageModel, PageState> {
-  @Property<PagePresenter>({
-    onInit(that) {
-      if (that?.viewUpdater) {
-        that?.unsubscriptions.push(
-          that?.model.subscribeToChange(that?.viewUpdater)
-        );
-      }
-      that?.model.validateAll();
-      that?.model.notifyChange();
-    },
-  })
+@UseBinding
+export class PagePresenter
+  extends PresenterBase<PageModel, PageState>
+  implements IPresenter<PageModel, PageState> {
   public model: PageModel;
-  public viewUpdater: nsObserver.Observer | undefined;
   public route: nsAdapter.IRouteAdapter;
 
   private strategy: Record<EditionMode, nsUseCase.PageHandler>;
-  @Property<PagePresenter>({
-    onInit(that) {
-      that?.unsubscriptions.push(
-        that?.pageStore.subscribe((pages) => {
+  @Bind<PagePresenter>({
+    onSet: (that, name) =>
+      that.addSubscriptionFor(
+        name,
+        that.pageStore.subscribe((pages) => {
           const page = pages.find((p) => p.id === that.model.id);
           if (!page) return;
           that.model = new PageModel(page);
         })
-      );
-    },
+      ),
   })
   private pageStore: nsAdapter.IDataStore<nsEntity.IPageEntity>;
-  private unsubscriptions: Function[] = [];
 
   constructor(
     pageStore: nsAdapter.IDataStore<nsEntity.IPageEntity>,
     route: nsAdapter.IRouteAdapter
   ) {
+    super();
     this.pageStore = pageStore;
     this.route = route;
     this.model = new PageModel({});
@@ -58,31 +48,22 @@ export class PagePresenter implements IPresenter<PageModel, PageState> {
     };
   }
 
-  public async query(id: string | undefined) {
-    if (!id) return;
-
-    this.model.isLoading = true;
-    const item = this.pageStore.single(id);
-    if (item.status === CommandStatus.Success) {
-      this.model = new PageModel(item.data || {});
-      this.model.isLoading = true;
-      return;
-    }
-
-    console.time("PageCollectionPresenter : querySingle");
-    const result = await this.pageStore.querySingle(id);
-    console.log("PageCollectionPresenter : querySingle : result", result);
-    console.timeEnd("PageCollectionPresenter : querySingle");
-
-    this.model.isLoading = true;
+  public bind(
+    state: Partial<PageState>,
+    viewUpdater?: nsObserver.StateObserver<PageState>
+  ) {
+    this.unsubscribeToChange();
+    this.model = new PageModel(state);
+    this.viewUpdater = viewUpdater;
+    this.subscribeToChange();
   }
 
-  public setModel(model: Partial<PageState>) {
-    this.model = new PageModel(model);
-  }
-
-  destroy(): void {
-    this.unsubscriptions.forEach((unsubscription) => unsubscription());
+  public setModel(state: Partial<PageState>) {
+    this.model.id = state.id;
+    this.model.created = state.created || "";
+    this.model.edited = state.edited || "";
+    this.model.name = state.name || "";
+    this.model.sections = state.sections || [];
   }
 
   public async save(): Promise<boolean> {

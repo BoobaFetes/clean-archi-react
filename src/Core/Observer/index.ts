@@ -1,9 +1,7 @@
 export { ObservableCollection } from "./ObservableCollection";
 
 export declare namespace nsObserver {
-  export type Observable = {};
-
-  export type Observer = (item?: Observable) => void;
+  export type Observer = () => void;
   export type StateObserver<T> = (state: T) => void;
   export type UnSubscribe = () => void;
   export interface IChangeSubscription {

@@ -1,23 +1,21 @@
-import { Property, UseProperty } from "Core/Decorator";
+import { Bind, UseBinding } from "Core/Decorator";
 import { ModelBase } from "App/Model";
 import { nsEntity } from "Core/Entity";
-import { nsObserver } from "Core/Observer";
 import { EditionMode } from "Core/UseCase";
 
-export type PageState = nsObserver.Observable &
-  nsEntity.IPageEntity & {
-    isLoading: boolean;
-    mode: EditionMode;
-    errors: Record<keyof PageState, string | undefined>;
-  };
+export type PageState = nsEntity.IPageEntity & {
+  isLoading: boolean;
+  mode: EditionMode;
+  errors: Record<keyof PageState, string | undefined>;
+};
 
-@UseProperty
+@UseBinding
 export class PageModel extends ModelBase<PageState> implements PageState {
   //#region IPageEntity
   public id: nsEntity.Guid | undefined;
 
-  @Property<PageModel>({
-    onChange: (that) => that?.validate("name"),
+  @Bind<PageModel>({
+    onSet: (that) => that.validate("name"),
     notifyChange: true,
   })
   public name: string = "";
@@ -28,13 +26,10 @@ export class PageModel extends ModelBase<PageState> implements PageState {
   public sections: nsEntity.Guid[] = [];
   //#endregion
 
-  @Property({ notifyChange: true })
+  @Bind({ notifyChange: true })
   public isLoading: boolean = false;
   public mode: EditionMode;
   public errors: Record<keyof PageState, string | undefined>;
-
-  @Property<PageModel>({ notifyChange: true })
-  public loading: boolean = false;
 
   constructor(model: Partial<PageState>) {
     super();
@@ -50,7 +45,7 @@ export class PageModel extends ModelBase<PageState> implements PageState {
     //#endregion
   }
 
-  protected notifyArgument(): PageState {
+  public getState(): PageState {
     return {
       id: this.id,
       name: this.name,

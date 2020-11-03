@@ -13,6 +13,7 @@ import { DataVizPageStore } from "App/Infra";
 import { styles } from "./styles";
 import { RouteAdapter } from "App/Infra/Adapters";
 import { PageState } from "./PageModel";
+import { nsObserver } from "Core/Observer";
 
 // simulate the dependancy injection
 const pageStore = new DataVizPageStore();
@@ -20,6 +21,7 @@ const pageStore = new DataVizPageStore();
 export type PageProps = nsEntity.IPageEntity & {
   mode: EditionMode;
   route: RouteAdapter;
+  isLoading?: boolean;
 };
 
 type Props = PageProps & WithStyles<typeof styles>;
@@ -29,22 +31,20 @@ class PageClass extends PureComponent<Props, PageState> {
   constructor(props: Props) {
     super(props);
     this.presenter = new PagePresenter(pageStore, props.route);
+    this.presenter.bind(this.props, this.viewUpdater);
   }
 
-  public componentDidMount() {
-    this.presenter.viewUpdater = (state) => {
-      this.setState({ ...state });
-    };
+  public componentDidUpdate(prevProps: Readonly<Props>) {
     this.presenter.setModel(this.props);
   }
-  public componentDidUpdate(prevProps: Readonly<Props>) {
-    if (this.props.id !== prevProps.id || this.props.mode !== prevProps.mode) {
-      this.presenter.setModel(this.props);
-    }
-  }
+
   public componentWillUnmount() {
     this.presenter.destroy();
   }
+
+  private viewUpdater: nsObserver.StateObserver<PageState> = (state) => {
+    this.setState({ ...state });
+  };
 
   public render() {
     const { classes } = this.props;
@@ -59,7 +59,7 @@ class PageClass extends PureComponent<Props, PageState> {
       >
         <Grid item container direction="column" className={classes.root}>
           <Grid item container>
-            {this.presenter.model.loading && <LinearProgress />}
+            {this.presenter.model.isLoading && <LinearProgress />}
             <Field
               fullWidth
               label="edition mode"

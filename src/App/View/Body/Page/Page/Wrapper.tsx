@@ -22,10 +22,11 @@ export const PageWrappper: FC<nsPageWrapper.Props> = (props) => {
     parseBooleans: true,
   });
 
+  const id = props.match.params.id;
   const store = new DataVizPageStore();
-  const result = store.single(props.match.params.id);
+  const result = store.single(id);
 
-  const item = result.data || ({} as nsEntity.IPageEntity);
+  const item = result.data || ({ id } as nsEntity.IPageEntity);
   const route = new RouteAdapter(props);
 
   return (

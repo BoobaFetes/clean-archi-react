@@ -13,6 +13,7 @@ import { Add, Edit, Delete } from "@material-ui/icons";
 import { PageCollectionState } from "./PageCollectionModel";
 import { PageCollectionPresenter } from "./PageCollectionPresenter";
 import { DataVizPageStore } from "App/Infra";
+import { nsObserver } from "Core/Observer";
 
 // simulate the dependancy injection
 const pageStore = new DataVizPageStore();
@@ -28,16 +29,19 @@ class CollectionClass extends PureComponent<Props, PageCollectionState> {
   }
 
   public componentDidMount() {
-    this.presenter.viewUpdater = (state) => {
-      this.setState({ ...state });
-    };
-    this.presenter.setModel({ items: [] });
+    this.presenter.bind({ items: [] }, this.viewUpdater);
     this.presenter.query();
   }
 
   public componentWillUnmount() {
     this.presenter.destroy();
   }
+
+  private viewUpdater: nsObserver.StateObserver<PageCollectionState> = (
+    state
+  ) => {
+    this.setState({ ...state });
+  };
 
   public render() {
     return (
@@ -47,7 +51,7 @@ class CollectionClass extends PureComponent<Props, PageCollectionState> {
             <Add />
           </IconButton>
         </Link>
-        {this.presenter.model.loading && <LinearProgress />}
+        {this.presenter.model.isLoading && <LinearProgress />}
         <ComponentCollection
           items={this.presenter.model.collection.list.map((item, index) => (
             <Grid

@@ -1,1 +1,1 @@
-export { Property, UseProperty } from "./Property";
+export { UseBinding, Bind } from "./Binding";
